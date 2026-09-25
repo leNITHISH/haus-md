@@ -1,6 +1,5 @@
 # Progress log
 
-## Status: on hold (uni exams), as of 2026-09-25
 
 ## Done
 

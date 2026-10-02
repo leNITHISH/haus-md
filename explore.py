@@ -59,19 +59,28 @@ con = duckdb.connect('haus.duckdb')
 #        """).show()
 
 
-# Step 5 (currently broken, on hold — see notes/progress.md): pull in
-# ratings for the show from title.ratings. The subquery below references
-# `b.tconst` but house_basics is never aliased as `b` in this scope, so
-# this raises "Binder Error: Referenced table 'b' not found!". Left as-is
-# intentionally rather than fixed mid-exam-break.
+# Step 5: pull in ratings for the show's episodes from title.ratings,
+# keyed off the tconsts already collected in house_episodes. (Originally
+# broken — see notes/progress.md and notes/duck.md for the alias-scoping
+# bug that was here before the `tconst IN (...)` rewrite.)
+#con.sql("""
+#        CREATE TABLE house_ratings AS
+#        SELECT * FROM read_csv('data/title.ratings.tsv.gz',
+#        nullstr='\\N',
+#        sample_size=-1
+#    ) WHERE tconst IN (SELECT tconst FROM house_episodes) ;
+#""")
+
+
+# Step 6: check what's in house_ratings now that it's built.
+#con.sql("""
+#        SELECT * FROM house_ratings;
+#        """).show();
+
+
+#con.sql("""
+#       CREATE TABLE house_full AS select e.tconst, e.seasonNumber, e.episodeNumber, r.averageRating, r.numVotes from house_episodes e join house_ratings r on r.tconst=e.tconst order by seasonNumber, episodeNumber;""")
+
 con.sql("""
-        CREATE TABLE house_ratings AS
-        SELECT r.* FROM read_csv('data/title.ratings.tsv.gz', 
-        nullstr='\\N', 
-        sample_size=-1
-    ) r   WHERE r.tconst = (
-            SELECT b.tconst from house_basics where startyear=2004
-    ) ;
-""")
-
-
+        SELECT * from house_full;
+        """).show()

@@ -81,3 +81,36 @@ def run_all(con):
     log.info("all hard data-quality checks passed")
 
     check_vote_count_outliers(con)
+
+
+def check_all_crew_names_resolve(con):
+    """Every nconst referenced by house_directors/house_writers should have
+    a matching row in house_people -- if not, house_people's filter missed
+    someone, and that person would silently drop out of any director/
+    writer join instead of showing up as a visible failure."""
+
+    unresolved = con.sql("""
+        SELECT COUNT(*) FROM (
+            SELECT nconst FROM house_directors
+            UNION
+            SELECT nconst FROM house_writers
+        ) AS crew
+        LEFT JOIN house_people p ON p.nconst = crew.nconst
+        WHERE p.nconst IS NULL
+    """).fetchone()[0]
+    if unresolved:
+        return f"{unresolved} crew nconst(s) have no matching row in house_people"
+    return None
+
+
+CREW_HARD_CHECKS = [check_all_crew_names_resolve]
+
+
+def run_crew_checks(con):
+    """Separate from run_all: validates house_directors/house_writers/
+    house_people, which only exist once ingest.load_crew_tables has run."""
+
+    failures = [msg for check in CREW_HARD_CHECKS if (msg := check(con)) is not None]
+    if failures:
+        raise ValidationError("; ".join(failures))
+    log.info("all crew data-quality checks passed")

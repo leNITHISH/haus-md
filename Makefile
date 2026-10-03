@@ -12,4 +12,4 @@ test:
 
 clean:
 	rm -f haus.duckdb
-	rm -f output/*.png
+	rm -f output/*.png output/*.parquet

@@ -6,6 +6,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import transform
+
 # 2 seasons, 3 episodes each, clean data.
 EPISODES = [
     ("tt0001", 1, 1),
@@ -71,3 +73,41 @@ def negative_votes_con():
     ratings = list(RATINGS)
     ratings[0] = ("tt0001", 8.0, -1)
     return _seed(duckdb.connect(":memory:"), ratings=ratings)
+
+
+# "Director A" directs season 1 + the last episode of season 2, "Director B"
+# directs the rest of season 2. "Writer X" writes every episode.
+DIRECTORS = [
+    ("tt0001", "nm001"), ("tt0002", "nm001"), ("tt0003", "nm001"),
+    ("tt0004", "nm002"), ("tt0005", "nm002"), ("tt0006", "nm001"),
+]
+WRITERS = [(tconst, "nm010") for tconst, _, _ in EPISODES]
+PEOPLE = [
+    ("nm001", "Director A"),
+    ("nm002", "Director B"),
+    ("nm010", "Writer X"),
+]
+
+
+def _seed_crew(con, directors=DIRECTORS, writers=WRITERS, people=PEOPLE):
+    con.sql("CREATE TABLE house_directors (tconst VARCHAR, nconst VARCHAR)")
+    con.executemany("INSERT INTO house_directors VALUES (?, ?)", directors)
+
+    con.sql("CREATE TABLE house_writers (tconst VARCHAR, nconst VARCHAR)")
+    con.executemany("INSERT INTO house_writers VALUES (?, ?)", writers)
+
+    con.sql("CREATE TABLE house_people (nconst VARCHAR, primaryName VARCHAR)")
+    con.executemany("INSERT INTO house_people VALUES (?, ?)", people)
+    return con
+
+
+@pytest.fixture
+def crew_con(clean_con):
+    transform.build_house_full(clean_con)
+    return _seed_crew(clean_con)
+
+
+@pytest.fixture
+def unresolved_crew_con(clean_con):
+    transform.build_house_full(clean_con)
+    return _seed_crew(clean_con, people=PEOPLE[:-1])  # "Writer X" (nm010) has no matching row

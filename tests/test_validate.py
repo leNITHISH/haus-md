@@ -44,3 +44,12 @@ def test_vote_count_outlier_warns_without_raising(clean_con, caplog):
     with caplog.at_level("WARNING"):
         validate.check_vote_count_outliers(clean_con, threshold=6000)
     assert any("vote count outlier" in r.message for r in caplog.records)
+
+
+def test_crew_checks_pass_when_all_names_resolve(crew_con):
+    validate.run_crew_checks(crew_con)  # should not raise
+
+
+def test_crew_checks_raise_on_unresolved_nconst(unresolved_crew_con):
+    with pytest.raises(validate.ValidationError, match="house_people"):
+        validate.run_crew_checks(unresolved_crew_con)

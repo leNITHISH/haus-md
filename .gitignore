@@ -1,3 +1,5 @@
 venv/
 *.duckdb
 data/*.gz
+__pycache__/
+.pytest_cache/

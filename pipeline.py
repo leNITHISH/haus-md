@@ -4,11 +4,11 @@ import sys
 
 import duckdb
 
-import analyze
 import config
 import download
 import export
 import ingest
+import report
 import transform
 import validate
 import visualize
@@ -41,7 +41,7 @@ def main():
         log.error("data quality validation failed: %s", e)
         sys.exit(1)
 
-    analyze.run_all(con)
+    report.print_findings(con)
     plot_path = visualize.plot_rolling_average(con)
     parquet_paths = export.export_all(con)
 

@@ -1,8 +1,3 @@
-import logging
-
-log = logging.getLogger(__name__)
-
-
 def early_vs_late_v1(con):
     """Flat cutoff (episodeNumber > 15 = "late"). Flawed: doesn't account
     for seasons having different lengths (~20-24 episodes), so it mostly
@@ -182,18 +177,3 @@ def writer_ratings(con, min_episodes=3):
     of the credited writers on", not sole authorship."""
 
     return _person_ratings(con, "house_writers", min_episodes)
-
-
-def run_all(con):
-    log.info("early_vs_late_v1: %s", early_vs_late_v1(con))
-    log.info("early_vs_late_v2: %s", early_vs_late_v2(con))
-    log.info("lowest_vote_episodes: %s", lowest_vote_episodes(con))
-    log.info("season_averages: %s", season_averages(con))
-    log.info("season_volatility: %s", season_volatility(con))
-    log.info("votes_rating_correlation: %s", votes_rating_correlation(con))
-    log.info("premiere_vs_finale: %s", premiere_vs_finale(con))
-    log.info("season_rating_outliers: %s", season_rating_outliers(con))
-    log.info("overall_trend: %s", overall_trend(con))
-    log.info("votes_per_season: %s", votes_per_season(con))
-    log.info("director_ratings: %s", director_ratings(con))
-    log.info("writer_ratings: %s", writer_ratings(con))
